@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/loginText"
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Enter Your 病症 here"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="100dp"/>
+
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:text="Submit" />
+    </LinearLayout>
+</LinearLayout>
