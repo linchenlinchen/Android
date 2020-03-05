@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.free.diary">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:name=".DiaryApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/fatcat"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="Rhfr9WpbRDHoXvjH6MQXrT99n2xLVZCU" />
+
+        <activity
+            android:name=".ui.activity.TestActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Main2Activity"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.GridEditActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+        <activity
+            android:name=".ui.activity.CalendarActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.DiaryReadActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".support.test.TestCalendarActivity"
+            android:label="日历"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".support.test.TestOrmActivity"
+            android:label="数据库"
+            android:screenOrientation="portrait" />
+        <activity android:name=".main.RegisterActivity" />
+        <activity android:name=".main.HomePageActivity" />
+        <activity
+            android:name=".main.MemoActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".main.MemoContentActivity"
+            android:theme="@style/Theme.AppCompat.Dialog" />
+        <activity android:name=".main.EditActivity" />
+        <activity android:name=".ui.activity.TimeDairyEditActivity" />
+
+        <service
+            android:name=".entries.NotificationService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".ui.activity.TimeLight"></activity>
+    </application>
+
+</manifest>

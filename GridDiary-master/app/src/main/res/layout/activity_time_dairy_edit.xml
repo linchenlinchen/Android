@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activity.TimeDairyEditActivity">
+
+    <TextView
+        android:id="@+id/tv_ddl_date"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="53dp"
+        android:text="未设置时间" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_height="match_parent">
+
+
+        <me.james.biuedittext.BiuEditText
+            android:id="@+id/eidt_time_diary_content"
+            android:layout_width="match_parent"
+            android:background="@color/white"
+            android:layout_height="wrap_content"
+            android:hint="把想说的话写给未来的你吧"
+            android:textColor="@android:color/black"
+            app:biu_duration="800"
+            app:biu_text_color="@android:color/darker_gray"
+            app:biu_text_scale="1.5"
+            app:biu_type="flydown"
+            app:biu_text_start_size="12sp" />
+
+
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.scalified.fab.ActionButton
+            android:id="@+id/set_date_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/fab_margin"
+            android:layout_marginBottom="@dimen/fab_margin" />
+
+
+    </RelativeLayout>
+
+
+
+
+
+
+
+</android.support.constraint.ConstraintLayout>
