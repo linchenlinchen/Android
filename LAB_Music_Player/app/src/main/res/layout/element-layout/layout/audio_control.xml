@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/alarm"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/alarm"
+                android:layout_margin="20dp"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/selector"
+                android:scaleType="centerCrop"
+                 />
+            <TextView
+                android:id="@+id/process"
+                android:text="00:00"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"/>
+            <SeekBar
+                android:id="@+id/seeker_bar"
+                android:layout_weight="5"
+                android:layout_width="190dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+
+                android:scaleType="centerCrop"
+                android:background="#00000000"
+                android:progress="0"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"/>
+            <TextView
+                android:id="@+id/duration"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"/>
+        </LinearLayout>
+
+
+        <RelativeLayout
+            android:id="@+id/control_area"
+            android:layout_width="match_parent"
+            android:layout_height="60dp">
+            <ImageButton
+                android:id="@+id/pattern"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/sequence"
+                android:gravity="center"
+                android:layout_margin="17.5dp"
+
+                android:background="@drawable/selector"
+                android:layout_alignParentLeft="true"
+                android:scaleType="centerCrop"
+                 />
+            <LinearLayout
+                android:id="@+id/play_area"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+
+                android:layout_centerInParent="true"
+                >
+                <ImageButton
+                    android:id="@+id/last"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/last"
+                    android:layout_margin="20dp"
+
+                    android:background="@drawable/selector"
+                    android:scaleType="centerCrop"
+                     />
+                <ImageButton
+                    android:id="@+id/resume"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/resume"
+                    android:layout_margin="20dp"
+
+                    android:background="@drawable/selector"
+                    android:scaleType="centerCrop"
+                     />
+                <ImageButton
+                    android:id="@+id/next"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/next"
+                    android:layout_margin="20dp"
+
+                    android:background="@drawable/selector"
+                    android:scaleType="centerCrop"
+                     />
+
+            </LinearLayout>
+            <ImageButton
+                android:id="@+id/menu"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/menu"
+                android:layout_gravity="center"
+                android:layout_margin="17.5dp"
+
+                android:background="@drawable/selector"
+                android:scaleType="centerCrop"
+                android:layout_alignParentRight="true"
+                 />
+        </RelativeLayout>
+    </LinearLayout>

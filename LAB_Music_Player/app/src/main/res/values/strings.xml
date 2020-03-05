@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">酷狗</string>
+    <drawable name="clr_normal">#00000000</drawable>
+    <drawable name="clr_pressed">#bfbfbf</drawable>
+</resources>
