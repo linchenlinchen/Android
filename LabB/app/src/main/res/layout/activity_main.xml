@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    >
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
+    android:text="An Unforgettable Experience\nIn my life, there are many experiences which I can’t forget. I still remember what happened last year. It was Tree-planting Day. We went to plant trees in Luxun Park. As soon as we arrived, we began to work. Some were digging holes, others were planting . We all worked very hard so as to plant more trees because we all know trees are the best pollution fighters, and they are very useful to human beings. When the sun went down, we went back home unwillingly. Although we were very tired, we felt very happy.
+It is unforgettable because it’s the first time that I have done something meaningful to protect the environment."/>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Broadcast"
+        android:background="@color/colorPrimary"
+        />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="You can input something here"
+        />
+    <Button
+        android:id="@+id/buttonForLoop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="forLooper"
+        android:background="@color/colorPrimary"
+        />
+
+</LinearLayout>
