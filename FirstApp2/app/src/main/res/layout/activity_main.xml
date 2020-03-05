@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/bt1"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:shadowColor="@color/colorPrimaryDark"
+        android:text="百度"/>
+    <Button
+        android:id="@+id/bt2"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="电话"/>
+    <Button
+        android:id="@+id/bt3"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="活动跳转返回结果"/>
+    <Button
+        android:id="@+id/btDia"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="跳转dialog活动"/>
+    <Button
+        android:id="@+id/btDatabase"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Create Database"/>
+    <Button
+        android:id="@+id/btAddData"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Add data"/>
+    <Button
+        android:id="@+id/btUpdateData"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Update data"/>
+    <Button
+        android:id="@+id/btDelete"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Delete data"/>
+    <Button
+        android:id="@+id/btQuery"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Search data"/>
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Change text"/>
+    <Button
+        android:id="@+id/change_text"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Change text"/>
+    <Button
+        android:id="@+id/start_service"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Start Service"/>
+    <Button
+        android:id="@+id/stop_service"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Stop Service"/>
+    <Button
+        android:id="@+id/send_notice"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:text="Send notice"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+
+</LinearLayout>

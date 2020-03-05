@@ -1,0 +1,74 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll_right"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <!--android:background="@drawable/bg_widget"-->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#ccc">
+
+        <ImageView
+            android:id="@+id/iv_icon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:background="@mipmap/ic_launcher_round" />
+        <!--//marginStart和marginEnd对应于在从左到右（LTR模式下）左和右的的margin设置。如果是（RTL模式），那么就是右和左是margin-->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/iv_icon"
+            android:layout_toRightOf="@id/iv_icon"
+            android:text="Widget"
+             />
+        <!--//老版本支持toEndof，新的支持toRightof，但是现在是两者一起用效果更稳定-->
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            >
+            <!--layout_alignParentEnd和layout_alignParentRight紧贴父元素结束位置结束，为了更好适应，最好两者同时设置-->
+
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:indeterminateTint="@color/colorAccent"
+                android:indeterminateTintMode="src_atop"
+                android:visibility="gone" />
+            <!--indeterminate意思是不确定进度条，就是那种旋转的不显示进度百分比的进度条，所以indeterminateTint就是这个进度条的颜色-->
+
+            <TextView
+                android:id="@+id/tv_refresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="刷新"
+                android:padding="5dp"
+                android:textSize="12sp"
+                android:layout_marginRight="15dp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/lv_device"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="80dip"
+        android:gravity="center"
+        android:horizontalSpacing="4dip"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="4dip" />
+
+</LinearLayout>
