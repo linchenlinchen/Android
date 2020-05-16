@@ -17,6 +17,7 @@ public class MusicUtils {
         Cursor cursor = context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null,
                 null, MediaStore.Audio.AudioColumns.IS_MUSIC);
         if(cursor!=null){
+            System.out.println("!null");
             while (cursor.moveToNext()){
                 Song song = new Song();
                 song.setSong_name(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)));
@@ -35,6 +36,8 @@ public class MusicUtils {
                 }
             }
             cursor.close();
+        }else {
+            System.out.println("null");
         }
         return list;
     }

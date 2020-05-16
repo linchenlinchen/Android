@@ -28,6 +28,7 @@
                 android:layout_margin="10dp"/>
             <SeekBar
                 android:id="@+id/seeker_bar"
+
                 android:layout_weight="5"
                 android:layout_width="190dp"
                 android:layout_height="wrap_content"
@@ -39,6 +40,7 @@
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"/>
             <TextView
                 android:id="@+id/duration"
+                android:text="00:00"
                 android:layout_weight="1"
                 android:layout_gravity="center"
                 android:layout_width="40dp"

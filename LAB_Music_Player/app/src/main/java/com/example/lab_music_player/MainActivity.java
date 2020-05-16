@@ -1,16 +1,21 @@
 package com.example.lab_music_player;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,8 +34,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";/*由logt+TAB自动生成。*/
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private boolean isSeekBarChanging;
-    private Timer timer;
-    private int currentPosition;//当前音乐播放的进度
 
     List<Song> mySongList;
     int position;
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageButton last;
     ImageButton resume;
     ImageButton next;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu,menu);
@@ -68,7 +72,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         hideActionBar();
-
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                change_song(true);
+            }
+        });
         out = findViewById(R.id.out);
         title = findViewById(R.id.title);
         author = findViewById(R.id.author);
@@ -80,20 +89,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         next = findViewById(R.id.next);
 
         prepareMediaPlayer();
+
         out.setOnClickListener(this);
-        //监听播放时回调函数
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(mediaPlayer.isPlaying() && !isSeekBarChanging){/*这个对于mediaPlayer存在的判断很重要！否则切歌时可能会无故暂停*/
-                    seekBar.setProgress(mediaPlayer.getCurrentPosition());
-                    if(seekBar.getProgress() == mediaPlayer.getDuration()){
-                        sequence_next();
-                    }
-                }
-            }
-        },0,50);
         seekBar.setOnSeekBarChangeListener(new MySeekBar());
         last.setOnClickListener(this);
         resume.setOnClickListener(this);
@@ -138,9 +135,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             File file = new File(song.getPath());
             mediaPlayer.setDataSource(file.getPath());
             mediaPlayer.prepare();
-            seekBar.setMax(song.getDuration());
-            Intent startIntent = new Intent(this,MyService.class);
-            startService(startIntent);
+            seekBar.setProgress(mediaPlayer.getCurrentPosition());
+            seekBar.setMax(mediaPlayer.getDuration());
+            new UpdateSeekBarTask().execute();
+//            Intent startIntent = new Intent(this,MyService.class);
+//            startService(startIntent);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -150,11 +149,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         mediaPlayer.release();
-        timer.cancel();
-        timer = null;
         mediaPlayer = null;
         super.onDestroy();
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -163,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
                 break;
             case R.id.last:
-                sequence_last();
+                change_song(false);
                 break;
             case R.id.resume:
                 /*继续与暂停*/
@@ -176,47 +174,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.next:
-                sequence_next();
+                change_song(true);
                 break;
                 default:break;
         }
     }
 
-    public void sequence_last(){
+
+    public void change_song(Boolean isNext){
         try {
-            if (position > 0) {
-                position--;
-            }else if(position == 0){
-                position = mySongList.size()-1;
+            if(!isNext){
+                if (position > 0) {
+                    position--;
+                }else if(position == 0){
+                    position = mySongList.size()-1;
+                }
+            }else {
+                if (position < mySongList.size()-1) {
+                    position++;
+                }else if(position == mySongList.size()-1){
+                    position = 0;
+                }
             }
             Song song = mySongList.get(position);
 
             mediaPlayer.reset();
             mediaPlayer.setDataSource(song.getPath());
             mediaPlayer.prepare();
+            mediaPlayer.start();
+            seekBar.setProgress(0);
             seekBar.setMax(song.getDuration());
             resume.setImageResource(R.drawable.pause);
-            mediaPlayer.start();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void sequence_next(){
-        try {
-            if (position < mySongList.size()-1) {
-                position++;
-            }else if(position == mySongList.size()){
-                position = 0;
-            }
-            Song song = mySongList.get(position);
-
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(song.getPath());
-            mediaPlayer.prepare();
-            seekBar.setMax(song.getDuration());
-            resume.setImageResource(R.drawable.pause);
-            mediaPlayer.start();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -224,12 +212,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /*进度条处理*/
     public class MySeekBar implements SeekBar.OnSeekBarChangeListener {
-
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             int duration_time = mediaPlayer.getDuration();//获取音乐总时长
             int process_time = mediaPlayer.getCurrentPosition();//获取当前播放的位置
-            duration.setText(MusicUtils.formatTime(duration_time));//开始时间
-            process.setText(MusicUtils.formatTime(process_time));//总时长
+            duration.setText(MusicUtils.formatTime(duration_time));//总时长
+            process.setText(MusicUtils.formatTime(process_time));//进度
         }
 
         /*滚动时,应当暂停后台定时器*/
@@ -240,6 +227,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onStopTrackingTouch(SeekBar seekBar) {
             isSeekBarChanging = false;
             mediaPlayer.seekTo(seekBar.getProgress());
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public class UpdateSeekBarTask extends AsyncTask<Void, Integer, Boolean> {
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            try{
+                publishProgress(mediaPlayer.getCurrentPosition());
+                while (true) {
+                    if (mediaPlayer!=null && mediaPlayer.isPlaying()) {/*这个对于mediaPlayer存在的判断很重要！否则切歌时可能会无故暂停*/
+                        break;
+                    }
+                }
+            }catch (Exception e){
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            seekBar.setProgress(mediaPlayer.getCurrentPosition());
+            new UpdateSeekBarTask().execute();
         }
     }
 }
