@@ -1,18 +1,10 @@
 package com.example.lab_music_player;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -22,7 +14,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,10 +21,6 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.security.Permission;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,7 +29,7 @@ import static com.example.lab_music_player.MyService.mediaPlayer;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";/*由logt+TAB自动生成。*/
     private MyService.MusicBinder musicBinder;
-    private UpdateReceiver updateReceiver;
+//    private UpdateReceiver updateReceiver;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -113,11 +100,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         next = findViewById(R.id.next);
         /*确保权限*/
         prepareMediaPlayer();
-        /*注册广播接收器*/
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("com.example.lab_music_player.MUSIC_BROADCAST");
-        updateReceiver = new UpdateReceiver();
-        registerReceiver(updateReceiver, intentFilter);
         /*开启负责播放音乐的MyService*/
         Intent bindIntent = new Intent(this, MyService.class);
         bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE); // 绑定服务
@@ -174,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mediaPlayer.release();
         mediaPlayer = null;
         unbindService(serviceConnection);
-        unregisterReceiver(updateReceiver);
         super.onDestroy();
     }
 
@@ -186,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
                 break;
             case R.id.last:
+                resume.setImageResource(R.drawable.pause);
                 Intent intent_last = new Intent("com.example.lab_music_player.LAST");
                 sendBroadcast(intent_last);
                 break;
@@ -200,42 +182,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sendBroadcast(intent_resume);
                 break;
             case R.id.next:
+                resume.setImageResource(R.drawable.pause);
                 Intent intent_next = new Intent("com.example.lab_music_player.NEXT");
                 sendBroadcast(intent_next);
                 break;
                 default:break;
         }
     }
-
-
-//    public void change_song(Boolean isNext){
-//        try {
-//            if(!isNext){
-//                if (position > 0) {
-//                    position--;
-//                }else if(position == 0){
-//                    position = mySongList.size()-1;
-//                }
-//            }else {
-//                if (position < mySongList.size()-1) {
-//                    position++;
-//                }else if(position == mySongList.size()-1){
-//                    position = 0;
-//                }
-//            }
-//            Song song = mySongList.get(position);
-//
-//            mediaPlayer.reset();
-//            mediaPlayer.setDataSource(song.getPath());
-//            mediaPlayer.prepare();
-//            mediaPlayer.start();
-//            seekBar.setProgress(0);
-//            seekBar.setMax(song.getDuration());
-//            resume.setImageResource(R.drawable.pause);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//    }
 
     /*进度条处理*/
     public class MySeekBar implements SeekBar.OnSeekBarChangeListener {
@@ -255,43 +208,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MyService.mediaPlayer.seekTo(seekBar.getProgress());
         }
     }
-
-    @SuppressLint("StaticFieldLeak")
-    public class UpdateSeekBarTask extends AsyncTask<Void, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            try{
-                publishProgress(mediaPlayer.getCurrentPosition());
-                while (true) {
-                    if (mediaPlayer!=null && mediaPlayer.isPlaying()) {/*这个对于mediaPlayer存在的判断很重要！否则切歌时可能会无故暂停*/
-                        break;
-                    }
-                }
-            }catch (Exception e){
-                return false;
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            seekBar.setProgress(mediaPlayer.getCurrentPosition());
-            new UpdateSeekBarTask().execute();
-        }
-    }
-
-
-    public class UpdateReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int duration_time = musicBinder.getDuration();
-            int process_time = musicBinder.getProcess();
-            process.setText(MusicUtils.formatTime(process_time));
-            duration.setText(MusicUtils.formatTime(duration_time));
-            seekBar.setProgress(process_time);
-            seekBar.setMax(duration_time);
-        }
-    }
-
 
 }
