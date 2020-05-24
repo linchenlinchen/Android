@@ -3,11 +3,18 @@ package com.example.lab_music_player;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -30,13 +37,22 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.example.lab_music_player.MyService.mediaPlayer;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";/*由logt+TAB自动生成。*/
-    private MediaPlayer mediaPlayer = new MediaPlayer();
-    private boolean isSeekBarChanging;
+    private MyService.MusicBinder musicBinder;
+    private UpdateReceiver updateReceiver;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            musicBinder = (MyService.MusicBinder) service;
+        }
 
-    List<Song> mySongList;
-    int position;
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+    };
     ImageButton out;
     TextView title;
     TextView author;
@@ -46,6 +62,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageButton last;
     ImageButton resume;
     ImageButton next;
+
+    /*运用Handler中的handleMessage方法接收service传递的音乐播放进度信息，new Handler.callback放在handler构造函数内防止内存泄露*/
+    public Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            int duration_time = msg.arg2;
+            int process_time = msg.arg1;
+            process.setText(MusicUtils.formatTime(process_time));
+            duration.setText(MusicUtils.formatTime(duration_time));
+            seekBar.setProgress(process_time);
+            seekBar.setMax(duration_time);
+            return false;
+        }
+    });
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,12 +102,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         hideActionBar();
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                change_song(true);
-            }
-        });
         out = findViewById(R.id.out);
         title = findViewById(R.id.title);
         author = findViewById(R.id.author);
@@ -87,33 +111,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         last = findViewById(R.id.last);
         resume = findViewById(R.id.resume);
         next = findViewById(R.id.next);
-
+        /*确保权限*/
         prepareMediaPlayer();
-
+        /*注册广播接收器*/
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.example.lab_music_player.MUSIC_BROADCAST");
+        updateReceiver = new UpdateReceiver();
+        registerReceiver(updateReceiver, intentFilter);
+        /*开启负责播放音乐的MyService*/
+        Intent bindIntent = new Intent(this, MyService.class);
+        bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE); // 绑定服务
+        /*设置点击事件*/
         out.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(new MySeekBar());
         last.setOnClickListener(this);
         resume.setOnClickListener(this);
         next.setOnClickListener(this);
+        //每隔500毫秒发送音乐进度
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                //实例化一个Message对象
+                Message msg = Message.obtain();
+                //Message对象的arg1参数携带音乐当前播放进度信息，类型是int
+                msg.arg1 = musicBinder == null ? 0 : musicBinder.getProcess();
+                msg.arg2 = musicBinder == null ? 0 : musicBinder.getDuration();
+                //使用MainActivity中的handler发送信息
+                handler.sendMessage(msg);
+            }
+        }, 0, 500);
     }
 
     public void prepareMediaPlayer(){
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
-        }else {
-            initMediaPlayer();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode){
-            case 1:if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        initMediaPlayer();
-                    }else {
-                        Toast.makeText(this, "拒绝权限将无法使用程序", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }break;
+            case 1:
+                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "拒绝权限将无法使用程序", Toast.LENGTH_SHORT).show();
+                    finish();
+                }break;
             default:break;
         }
     }
@@ -125,31 +168,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void initMediaPlayer(){
-        try{
-            mySongList = MusicUtils.getMusicLists(MainActivity.this);
-            int length = mySongList.size();
-            position = (int)(Math.random()*length);
-            Song song = mySongList.get(position);
-            Toast.makeText(MainActivity.this,"现在为您播放的是："+song.getPath(),Toast.LENGTH_LONG).show();
-            File file = new File(song.getPath());
-            mediaPlayer.setDataSource(file.getPath());
-            mediaPlayer.prepare();
-            seekBar.setProgress(mediaPlayer.getCurrentPosition());
-            seekBar.setMax(mediaPlayer.getDuration());
-            new UpdateSeekBarTask().execute();
-//            Intent startIntent = new Intent(this,MyService.class);
-//            startService(startIntent);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
     /*销毁时释资源*/
     @Override
     protected void onDestroy() {
         mediaPlayer.release();
         mediaPlayer = null;
+        unbindService(serviceConnection);
+        unregisterReceiver(updateReceiver);
         super.onDestroy();
     }
 
@@ -161,54 +186,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
                 break;
             case R.id.last:
-                change_song(false);
+                Intent intent_last = new Intent("com.example.lab_music_player.LAST");
+                sendBroadcast(intent_last);
                 break;
             case R.id.resume:
                 /*继续与暂停*/
                 if(!mediaPlayer.isPlaying()){
-                    mediaPlayer.start();
                     resume.setImageResource(R.drawable.pause);
                 }else {
-                    mediaPlayer.pause();
                     resume.setImageResource(R.drawable.resume);
                 }
+                Intent intent_resume = new Intent("com.example.lab_music_player.RESUME");
+                sendBroadcast(intent_resume);
                 break;
             case R.id.next:
-                change_song(true);
+                Intent intent_next = new Intent("com.example.lab_music_player.NEXT");
+                sendBroadcast(intent_next);
                 break;
                 default:break;
         }
     }
 
 
-    public void change_song(Boolean isNext){
-        try {
-            if(!isNext){
-                if (position > 0) {
-                    position--;
-                }else if(position == 0){
-                    position = mySongList.size()-1;
-                }
-            }else {
-                if (position < mySongList.size()-1) {
-                    position++;
-                }else if(position == mySongList.size()-1){
-                    position = 0;
-                }
-            }
-            Song song = mySongList.get(position);
-
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(song.getPath());
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            seekBar.setProgress(0);
-            seekBar.setMax(song.getDuration());
-            resume.setImageResource(R.drawable.pause);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+//    public void change_song(Boolean isNext){
+//        try {
+//            if(!isNext){
+//                if (position > 0) {
+//                    position--;
+//                }else if(position == 0){
+//                    position = mySongList.size()-1;
+//                }
+//            }else {
+//                if (position < mySongList.size()-1) {
+//                    position++;
+//                }else if(position == mySongList.size()-1){
+//                    position = 0;
+//                }
+//            }
+//            Song song = mySongList.get(position);
+//
+//            mediaPlayer.reset();
+//            mediaPlayer.setDataSource(song.getPath());
+//            mediaPlayer.prepare();
+//            mediaPlayer.start();
+//            seekBar.setProgress(0);
+//            seekBar.setMax(song.getDuration());
+//            resume.setImageResource(R.drawable.pause);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
     /*进度条处理*/
     public class MySeekBar implements SeekBar.OnSeekBarChangeListener {
@@ -221,12 +248,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         /*滚动时,应当暂停后台定时器*/
         public void onStartTrackingTouch(SeekBar seekBar) {
-            isSeekBarChanging = true;
+
         }
         /*滑动结束后，重新设置值*/
         public void onStopTrackingTouch(SeekBar seekBar) {
-            isSeekBarChanging = false;
-            mediaPlayer.seekTo(seekBar.getProgress());
+            MyService.mediaPlayer.seekTo(seekBar.getProgress());
         }
     }
 
@@ -253,4 +279,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             new UpdateSeekBarTask().execute();
         }
     }
+
+
+    public class UpdateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int duration_time = musicBinder.getDuration();
+            int process_time = musicBinder.getProcess();
+            process.setText(MusicUtils.formatTime(process_time));
+            duration.setText(MusicUtils.formatTime(duration_time));
+            seekBar.setProgress(process_time);
+            seekBar.setMax(duration_time);
+        }
+    }
+
+
 }
