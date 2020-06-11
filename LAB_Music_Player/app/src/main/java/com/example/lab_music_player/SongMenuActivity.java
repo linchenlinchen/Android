@@ -9,8 +9,9 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongMenuActivity extends AppCompatActivity {
+public class SongMenuActivity extends BaseActivity {
     private List<Song> mySongList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,7 +20,7 @@ public class SongMenuActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.songList_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        SongAdapter adapter = new SongAdapter(mySongList);
+        SongAdapter adapter = new SongAdapter(mySongList,this);
         recyclerView.setAdapter(adapter);
     }
     private void initSongs() {

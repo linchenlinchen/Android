@@ -19,7 +19,12 @@ public class Song {
      * 歌曲的大小
      */
     public long size;
-
+    /**
+    * 歌曲写真
+    */
+    public String album;
+    public long album_id;
+    public String url;
     public Song(){
 
     }
@@ -74,5 +79,29 @@ public class Song {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getAlbum() {
+        return album;
+    }
+
+    public long getAlbum_id() {
+        return album_id;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
+    }
+
+    public void setAlbum_id(long album_id) {
+        this.album_id = album_id;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

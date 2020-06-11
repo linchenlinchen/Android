@@ -1,8 +1,11 @@
 package com.example.lab_music_player;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Handler;
@@ -11,6 +14,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -26,10 +30,12 @@ import java.util.TimerTask;
 
 import static com.example.lab_music_player.MyService.mediaPlayer;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";/*由logt+TAB自动生成。*/
+    private IntentFilter intentFilter;
+    private ImageReceiver imageReceiver;
+    private LocalBroadcastManager localBroadcastManager;
     private MyService.MusicBinder musicBinder;
-//    private UpdateReceiver updateReceiver;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initReceiver();
         hideActionBar();
         out = findViewById(R.id.out);
         title = findViewById(R.id.title);
@@ -109,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         last.setOnClickListener(this);
         resume.setOnClickListener(this);
         next.setOnClickListener(this);
-        //每隔500毫秒发送音乐进度
+        //每隔500毫秒发送音乐进度,也可以放service
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -156,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mediaPlayer.release();
         mediaPlayer = null;
         unbindService(serviceConnection);
+        localBroadcastManager.registerReceiver(imageReceiver,intentFilter);
         super.onDestroy();
     }
 
@@ -173,11 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.resume:
                 /*继续与暂停*/
-                if(!mediaPlayer.isPlaying()){
-                    resume.setImageResource(R.drawable.pause);
-                }else {
-                    resume.setImageResource(R.drawable.resume);
-                }
+                adjustRadioImage();
                 Intent intent_resume = new Intent("com.example.lab_music_player.RESUME");
                 sendBroadcast(intent_resume);
                 break;
@@ -209,4 +213,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /*调整播放或者暂停图标*/
+    public void adjustRadioImage(){
+        if(!MyService.mediaPlayer.isPlaying()){
+            resume.setImageResource(R.drawable.pause);
+        }else {
+            resume.setImageResource(R.drawable.resume);
+        }
+    }
+
+    public void initReceiver(){
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("com.example.lab_music_player.CHOOSE");
+        imageReceiver = new ImageReceiver();
+        localBroadcastManager.registerReceiver(imageReceiver,intentFilter);
+    }
+
+    public class ImageReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            resume.setImageResource(R.drawable.pause);
+        }
+    }
 }

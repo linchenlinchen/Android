@@ -15,6 +15,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,6 +29,8 @@ public class MyService extends Service {
     private ResumeReceiver resumeReceiver;
     private NextReceiver nextReceiver;
     private LastReceiver lastReceiver;
+    private ChooseReceiver chooseReceiver;
+    private LocalBroadcastManager localBroadcastManager;
     private static List<Song> mySongList;
     private static int position;
     private static int duration_time;
@@ -81,6 +84,7 @@ public class MyService extends Service {
         unregisterReceiver(resumeReceiver);
         unregisterReceiver(nextReceiver);
         unregisterReceiver(lastReceiver);
+        localBroadcastManager.unregisterReceiver(chooseReceiver);
     }
 
     //TODO :初始化播放设置
@@ -114,6 +118,11 @@ public class MyService extends Service {
         intentFilter.addAction("com.example.lab_music_player.LAST");
         lastReceiver = new LastReceiver();
         registerReceiver(lastReceiver,intentFilter);
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("com.example.lab_music_player.CHOOSE");
+        chooseReceiver = new ChooseReceiver();
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        localBroadcastManager.registerReceiver(chooseReceiver,intentFilter);
     }
 
     //TODO :设置播放的音频路径
@@ -134,7 +143,6 @@ public class MyService extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         return myBinder;
-//        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -152,15 +160,6 @@ public class MyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        initReceiver();
-//        initMediaPlayer();
-//
-//        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//            @Override
-//            public void onCompletion(MediaPlayer mediaPlayer) {
-////                change_song(true);
-//            }
-//        });
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -204,5 +203,13 @@ public class MyService extends Service {
         }
     }
 
+    public class ChooseReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            position = intent.getIntExtra("position",0);
+            setPlaySource(mySongList.get(position).getPath());
+            playOrPause();
+        }
+    }
 
 }

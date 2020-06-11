@@ -1,17 +1,22 @@
 package com.example.lab_music_player;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.ViewHolder> {
+    private Context context;
     private List<Song> mySongList;
     static class ViewHolder extends RecyclerView.ViewHolder{
         View songView;
@@ -25,8 +30,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.ViewHolder> {
         }
     }
 
-    public SongAdapter(List<Song> mySongList) {
+    public SongAdapter(List<Song> mySongList,Context context) {
         this.mySongList = mySongList;
+        this.context = context;
     }
 
     @NonNull
@@ -39,16 +45,23 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.ViewHolder> {
             public void onClick(View v) {
                 int position = viewHolder.getAdapterPosition();
                 Song song = mySongList.get(position);
-                Toast.makeText(v.getContext(), "you clicked view " + song.getSong_name(), Toast.LENGTH_SHORT).show();
+                //自定义一个action
+                Intent intent = new Intent("com.example.lab_music_player.CHOOSE");
+                //创建一个本地广播管理器
+                intent.putExtra("address",song.getPath());
+                intent.putExtra("position",position);
+                LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
+                //发送本地广播
+                localBroadcastManager.sendBroadcast(intent);
             }
         });
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int i) {
         Song song = mySongList.get(i);
-        viewHolder.singerImage.setImageResource(song.getResource());
+//        viewHolder.singerImage.setImageResource(song.getAlbum_id());
         viewHolder.songText.setText(song.getSong_name());
     }
 

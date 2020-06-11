@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
-public class RadioActivity extends AppCompatActivity implements View.OnClickListener{
+public class RadioActivity extends BaseActivity implements View.OnClickListener{
 
     private MediaPlayer mediaPlayer;
     @Override
