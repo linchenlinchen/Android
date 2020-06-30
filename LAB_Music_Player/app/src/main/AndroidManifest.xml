@@ -42,41 +42,6 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".MyService$NextReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.example.lab_music_player.NEXT"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MyService$LastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.example.lab_music_player.LAST"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MyService$ResumeReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter android:priority="2">
-                <action android:name="com.example.lab_music_player.RESUME"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MyService$ChooseReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.example.lab_music_player.CHOOSE"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MainActivity$ImageReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter android:priority="1">
-                <action android:name="com.example.lab_music_player.CHOOSE"/>
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>

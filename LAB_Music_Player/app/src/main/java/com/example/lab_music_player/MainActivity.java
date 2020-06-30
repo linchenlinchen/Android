@@ -1,22 +1,19 @@
 package com.example.lab_music_player;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,24 +25,38 @@ import android.widget.Toast;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.example.lab_music_player.MyService.mediaPlayer;
+import static com.example.lab_music_player.BehaviorRepository.*;
+import static com.example.lab_music_player.MyService.*;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";/*由logt+TAB自动生成。*/
-    private IntentFilter intentFilter;
-    private ImageReceiver imageReceiver;
-    private LocalBroadcastManager localBroadcastManager;
-    private MyService.MusicBinder musicBinder;
+    private Messenger musicMessenger;
+    /*运用Handler中的handleMessage方法接收service传递的音乐播放进度信息，new Handler.callback放在handler构造函数内防止内存泄露*/
+    public Handler process_handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            int duration_time = msg.arg1;
+            int process_time = msg.arg2;
+            process.setText(MusicUtils.formatTime(process_time));
+            duration.setText(MusicUtils.formatTime(duration_time));
+            seekBar.setProgress(process_time);
+            seekBar.setMax(duration_time);
+            return false;
+        }
+    });
+
+    private Messenger processMessenger = new Messenger(process_handler);
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            musicBinder = (MyService.MusicBinder) service;
+            musicMessenger = new Messenger(service);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
         }
     };
+
     ImageButton out;
     TextView title;
     TextView author;
@@ -56,19 +67,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     ImageButton resume;
     ImageButton next;
 
-    /*运用Handler中的handleMessage方法接收service传递的音乐播放进度信息，new Handler.callback放在handler构造函数内防止内存泄露*/
-    public Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            int duration_time = msg.arg2;
-            int process_time = msg.arg1;
-            process.setText(MusicUtils.formatTime(process_time));
-            duration.setText(MusicUtils.formatTime(duration_time));
-            seekBar.setProgress(process_time);
-            seekBar.setMax(duration_time);
-            return false;
+    public void hideActionBar(){
+        ActionBar actionbar = getSupportActionBar();
+        if (actionbar != null) {
+            actionbar.hide();
         }
-    });
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -91,11 +96,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initReceiver();
-        hideActionBar();
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+    }
+
+    public void findAllViews(){
         out = findViewById(R.id.out);
         title = findViewById(R.id.title);
         author = findViewById(R.id.author);
@@ -105,6 +111,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         last = findViewById(R.id.last);
         resume = findViewById(R.id.resume);
         next = findViewById(R.id.next);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        hideActionBar();
+        findAllViews();
         /*确保权限*/
         prepareMediaPlayer();
         /*开启负责播放音乐的MyService*/
@@ -123,11 +137,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             public void run() {
                 //实例化一个Message对象
                 Message msg = Message.obtain();
+                msg.replyTo = processMessenger;
                 //Message对象的arg1参数携带音乐当前播放进度信息，类型是int
-                msg.arg1 = musicBinder == null ? 0 : musicBinder.getProcess();
-                msg.arg2 = musicBinder == null ? 0 : musicBinder.getDuration();
+                msg.what=UPDATE_BAR;
                 //使用MainActivity中的handler发送信息
-                handler.sendMessage(msg);
+                try {
+                    if(musicMessenger!=null) {
+                        musicMessenger.send(msg);
+                    }
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }, 0, 500);
     }
@@ -150,12 +170,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    public void hideActionBar(){
-        ActionBar actionbar = getSupportActionBar();
-        if (actionbar != null) {
-            actionbar.hide();
-        }
-    }
+
 
     /*销毁时释资源*/
     @Override
@@ -163,7 +178,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mediaPlayer.release();
         mediaPlayer = null;
         unbindService(serviceConnection);
-        localBroadcastManager.registerReceiver(imageReceiver,intentFilter);
         super.onDestroy();
     }
 
@@ -176,19 +190,34 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 break;
             case R.id.last:
                 resume.setImageResource(R.drawable.pause);
-                Intent intent_last = new Intent("com.example.lab_music_player.LAST");
-                sendBroadcast(intent_last);
+                Message msg_last = Message.obtain();
+                msg_last.what = LAST_SONG;
+                try {
+                    musicMessenger.send(msg_last);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.resume:
                 /*继续与暂停*/
                 adjustRadioImage();
-                Intent intent_resume = new Intent("com.example.lab_music_player.RESUME");
-                sendBroadcast(intent_resume);
+                Message msg_play = Message.obtain();
+                msg_play.what = PLAY_OR_PAUSE;
+                try {
+                    musicMessenger.send(msg_play);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.next:
                 resume.setImageResource(R.drawable.pause);
-                Intent intent_next = new Intent("com.example.lab_music_player.NEXT");
-                sendBroadcast(intent_next);
+                Message msg_next = Message.obtain();
+                msg_next.what = NEXT_SONG;
+                try {
+                    musicMessenger.send(msg_next);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
                 default:break;
         }
@@ -203,7 +232,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             process.setText(MusicUtils.formatTime(process_time));//进度
         }
 
-        /*滚动时,应当暂停后台定时器*/
         public void onStartTrackingTouch(SeekBar seekBar) {
 
         }
@@ -219,21 +247,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             resume.setImageResource(R.drawable.pause);
         }else {
             resume.setImageResource(R.drawable.resume);
-        }
-    }
-
-    public void initReceiver(){
-        localBroadcastManager = LocalBroadcastManager.getInstance(this);
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("com.example.lab_music_player.CHOOSE");
-        imageReceiver = new ImageReceiver();
-        localBroadcastManager.registerReceiver(imageReceiver,intentFilter);
-    }
-
-    public class ImageReceiver extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            resume.setImageResource(R.drawable.pause);
         }
     }
 }
